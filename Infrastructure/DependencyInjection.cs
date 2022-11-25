@@ -1,10 +1,12 @@
-﻿using Infrastructure.Persistence.Contexts;
+﻿using Application.Common.Interfaces.Services;
+using Infrastructure.Persistence.Contexts;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Application;
+namespace Infrastructure;
 
 public static class DependencyInjection {
 
@@ -15,6 +17,8 @@ public static class DependencyInjection {
 
         services.AddDefaultIdentity<IdentityUser>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
+
+        services.AddScoped<IProductService, ProductService>();
 
         return services;
     }
