@@ -5,8 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
-namespace Infrastructure.Identity {
+namespace Application.Entities {
 
     public class ApplicationUser : IdentityUser {
+
+        public ICollection<Order> Orders { get; set; } = null!;
     }
 }

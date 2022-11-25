@@ -1,5 +1,5 @@
-﻿using Infrastructure.Identity;
-using Infrastructure.Persistence.Contexts;
+﻿using Infrastructure.Persistence.Contexts;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +13,7 @@ public static class DependencyInjection {
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        services.AddDefaultIdentity<ApplicationUser>()
+        services.AddDefaultIdentity<IdentityUser>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         return services;
