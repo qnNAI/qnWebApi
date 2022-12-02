@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces.Services;
+using Application.Entities;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
@@ -11,14 +12,17 @@ namespace Infrastructure;
 public static class DependencyInjection {
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration) {
+        MappingProfile.ApplyMappings();
+
         services.AddDbContext<ApplicationDbContext>(options => 
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
                 builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-        services.AddDefaultIdentity<IdentityUser>()
+        services.AddDefaultIdentity<ApplicationUser>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IIdentityService, IdentityService>();
 
         return services;
     }
