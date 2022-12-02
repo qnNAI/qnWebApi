@@ -1,6 +1,6 @@
 ﻿using Application.Common.Interfaces.Services;
 using Application.Models.Product;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers {
@@ -30,6 +30,7 @@ namespace Api.Controllers {
         }
              
         [HttpPost("create")]
+        [Authorize]
         public async Task<IActionResult> Add([FromBody] CreateProductRequest request) {
             var created = await _service.AddAsync(request);
             return CreatedAtAction("GetById", new { id = created.Id }, created);
