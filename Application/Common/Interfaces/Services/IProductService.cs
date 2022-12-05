@@ -12,5 +12,7 @@ namespace Application.Common.Interfaces.Services {
         Task<List<ProductDto>> GetAllAsync();
         Task<ProductDto> GetByIdAsync(Guid id);
         Task<ProductDto> AddAsync(CreateProductRequest request);
+        Task<ProductDto> UpdateAsync(ProductDto product);
+        Task DeleteAsync(Guid id);
     }
 }

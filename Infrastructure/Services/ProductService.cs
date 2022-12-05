@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Common.Exceptions;
 using Application.Common.Interfaces.Services;
+using Application.Entities;
 using Application.Models.Product;
 using Infrastructure.Persistence.Contexts;
 using Mapster;
@@ -24,17 +26,40 @@ namespace Infrastructure.Services {
         }
 
         public async Task<ProductDto> GetByIdAsync(Guid id) {
-            var product = await _context.Products.FindAsync(id);
-            return product.Adapt<ProductDto>();
+            var entity = await _context.Products.FindAsync(id);
+            return entity.Adapt<ProductDto>();
         }
 
-        public Task<ProductDto> AddAsync(CreateProductRequest request) {
-            return Task.FromResult(new ProductDto {
-                Id = Guid.NewGuid(),
-                Name = request.Name,
-                Price = request.Price,
-                Description = request.Description
-            });
+        public async Task<ProductDto> AddAsync(CreateProductRequest request) {
+            var entity = request.Adapt<Product>();
+            var created = await _context.Products.AddAsync(entity);
+            await _context.SaveChangesAsync();
+
+            return (created.Entity).Adapt<ProductDto>();
+        }
+
+        public async Task<ProductDto> UpdateAsync(ProductDto product) {
+            var entity = product.Adapt<Product>();
+            var isExists = await _context.Products.AnyAsync(x => x.Id == entity.Id);
+            if (!isExists) {
+                throw new NotFoundException(nameof(Product), entity.Id);
+            }
+
+            var updated = _context.Products.Update(entity);
+            await _context.SaveChangesAsync();
+
+            return (updated.Entity).Adapt<ProductDto>();
+        }
+
+        public async Task DeleteAsync(Guid id) {
+            var existing = await _context.Products.FindAsync(new object[] { id });
+
+            if (existing is null) {
+                throw new NotFoundException(nameof(Product), id);
+            }
+
+            _context.Products.Remove(existing);
+            await _context.SaveChangesAsync();
         }
     }
 }
