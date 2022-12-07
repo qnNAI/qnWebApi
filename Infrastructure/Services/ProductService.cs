@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Common.Exceptions;
 using Application.Common.Interfaces.Services;
-using Application.Entities;
+using Domain.Entities;
 using Application.Models.Product;
 using Infrastructure.Persistence.Contexts;
 using Mapster;
