@@ -1,5 +1,5 @@
 ﻿using Application.Common.Interfaces.Services;
-using Application.Entities;
+using Domain.Entities;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
@@ -22,6 +22,7 @@ public static class DependencyInjection {
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IIdentityService, IdentityService>();
 
         return services;

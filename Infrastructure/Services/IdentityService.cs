@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Application.Common.Interfaces.Services;
 using Application.Common.Security;
-using Application.Entities;
+using Domain.Entities;
 using Application.Models.Identity;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
