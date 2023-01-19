@@ -68,7 +68,7 @@ if(app.Environment.IsDevelopment()) {
     app.UseSwaggerUI(opts => opts.SwaggerEndpoint("/swagger/v1/swagger.json", "Api v1"));
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 if(app.Environment.IsDevelopment()) {
     app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
