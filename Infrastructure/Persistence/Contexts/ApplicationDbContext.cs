@@ -22,6 +22,7 @@ namespace Infrastructure.Persistence.Contexts {
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<OrderProduct> OrderProduct { get; set; } = null!;
+        public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder) {
             base.OnModelCreating(builder);
