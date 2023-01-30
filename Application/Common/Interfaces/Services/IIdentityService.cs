@@ -12,5 +12,6 @@ namespace Application.Common.Interfaces.Services {
         Task<IEnumerable<UserDto>> GetUsersAsync();
         Task<AuthenticateResponse> SignInAsync(SignInRequest request);
         Task<AuthenticateResponse> SignUpAsync(SignUpRequest request);
+        Task<AuthenticateResponse> RefreshTokenAsync(TokenRequest request);
     }
 }
