@@ -18,14 +18,14 @@ builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
-
 var tokenValidationParameters = new TokenValidationParameters {
     ValidateIssuerSigningKey = true,
     IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
     ValidateIssuer = false,
     ValidateAudience = false,
     RequireExpirationTime = false,
-    ValidateLifetime = true
+    ValidateLifetime = true,
+    ClockSkew = TimeSpan.Zero
 };
 builder.Services.AddSingleton(tokenValidationParameters);
 

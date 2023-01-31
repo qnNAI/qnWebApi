@@ -97,7 +97,10 @@ namespace Infrastructure.Services {
 
             var user = await _userManager.FindByNameAsync(request.Username);
             var token = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken(token.Id);
+            var refreshToken = GenerateRefreshToken(user, token.Id);
+
+            user.RefreshTokens.Add(refreshToken);
+            await _userManager.UpdateAsync(user);
 
             return new AuthenticateResponse {
                 Succeeded = true,
@@ -110,21 +113,9 @@ namespace Infrastructure.Services {
         public async Task<AuthenticateResponse> RefreshTokenAsync(TokenRequest request) {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var principal = tokenHandler.ValidateToken(request.Token, _tokenValidationParameters, out var validatedToken);
-
-            if(validatedToken is JwtSecurityToken securityToken
-                && !securityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase)) {
-
-                return new AuthenticateResponse {
-                    Succeeded = false,
-                    Errors = new[] {
-                            new IdentityError {
-                                Code = "AlgorithmMismatch",
-                                Description = "Token algorithm mismatch"
-                            }
-                        }
-                };
-            }
+            var tokenValidationParameters = _tokenValidationParameters.Clone();
+            tokenValidationParameters.ValidateLifetime = false; // token has to be expired
+            var principal = tokenHandler.ValidateToken(request.Token, tokenValidationParameters, out var validatedToken);
 
             var utcExpDate = long.Parse(principal.Claims.First(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
             var expDate = UnixTimeStampToDateTime(utcExpDate);
@@ -179,6 +170,18 @@ namespace Infrastructure.Services {
                 };
             }
 
+            if(storedRefreshToken.IsUsed) {
+                return new AuthenticateResponse {
+                    Succeeded = false,
+                    Errors = new[] {
+                        new IdentityError {
+                            Code = "RefreshTokenUsed",
+                            Description = "Refresh token has already been used"
+                        }
+                    }
+                };
+            }
+
             var jti = principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
 
             if (storedRefreshToken.JwtId != jti) {
@@ -193,14 +196,22 @@ namespace Infrastructure.Services {
                 };
             }
 
+            storedRefreshToken.IsUsed = true;
+            _context.RefreshTokens.Update(storedRefreshToken);
+            await _context.SaveChangesAsync();
+
             var user = await _userManager.FindByIdAsync(storedRefreshToken.UserId);
             var token = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken(user, token.Id);
+
+            user.RefreshTokens.Add(newRefreshToken);
+            await _userManager.UpdateAsync(user);
 
             return new AuthenticateResponse {
                 Succeeded = true,
                 Token = token.Token,
-                RefreshToken = storedRefreshToken.Token,
-                RefreshTokenExp = storedRefreshToken.Expires
+                RefreshToken = newRefreshToken.Token,
+                RefreshTokenExp = newRefreshToken.Expires
             };
         }
 
@@ -218,8 +229,9 @@ namespace Infrastructure.Services {
 
             var tokenDescriptor = new SecurityTokenDescriptor {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddSeconds(_jwtSettings.TokenLifetimeSeconds), // UtcNow throws
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
+                Expires = DateTime.UtcNow.AddSeconds(_jwtSettings.TokenLifetimeSeconds), // UtcNow throws
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature),
+                NotBefore = DateTime.UtcNow
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -230,7 +242,7 @@ namespace Infrastructure.Services {
             };
         }
 
-        private RefreshToken GenerateRefreshToken(string jwtId) {
+        private RefreshToken GenerateRefreshToken(ApplicationUser user, string jwtId) {
             var randomNum = new byte[32];
 
             using var random = RandomNumberGenerator.Create();
@@ -238,6 +250,7 @@ namespace Infrastructure.Services {
 
             return new RefreshToken {
                 Token = Convert.ToBase64String(randomNum),
+                UserId = user.Id,
                 Created = DateTime.UtcNow,
                 Expires = DateTime.UtcNow.AddMonths(1),
                 JwtId = jwtId
@@ -252,11 +265,10 @@ namespace Infrastructure.Services {
                 return existing;
             }
 
-            var token = GenerateRefreshToken(jwtId);
+            var token = GenerateRefreshToken(user, jwtId);
 
             user.RefreshTokens.Add(token);
-            _context.Update(user);
-            await _context.SaveChangesAsync();
+            await _userManager.UpdateAsync(user);
 
             return token;
         }
