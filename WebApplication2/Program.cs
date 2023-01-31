@@ -1,4 +1,5 @@
 using System.Text;
+using Api.Filters;
 using Application;
 using Application.Common.Security;
 using FluentValidation.AspNetCore;
@@ -38,7 +39,9 @@ builder.Services.AddAuthentication(x => {
     x.TokenValidationParameters = tokenValidationParameters;
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(opts => { 
+    opts.Filters.Add<ApiExceptionFilterAttribute>(); 
+});
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
