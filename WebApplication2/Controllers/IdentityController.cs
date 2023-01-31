@@ -35,5 +35,11 @@ namespace Api.Controllers {
             var result = await _identityService.SignUpAsync(request);
             return result;
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<AuthenticateResponse> RefreshToken([FromBody] TokenRequest request) {
+            var result = await _identityService.RefreshTokenAsync(request);
+            return result;
+        }
     }
 }

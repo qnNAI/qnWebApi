@@ -18,20 +18,24 @@ builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+var tokenValidationParameters = new TokenValidationParameters {
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
+    ValidateIssuer = false,
+    ValidateAudience = false,
+    RequireExpirationTime = false,
+    ValidateLifetime = true,
+    ClockSkew = TimeSpan.Zero
+};
+builder.Services.AddSingleton(tokenValidationParameters);
+
 builder.Services.AddAuthentication(x => {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(x => {
     x.SaveToken = true;
-    x.TokenValidationParameters = new TokenValidationParameters {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Secret)),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        RequireExpirationTime = false,
-        ValidateLifetime = true
-    };
+    x.TokenValidationParameters = tokenValidationParameters;
 });
 
 builder.Services.AddControllers();

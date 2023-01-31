@@ -9,6 +9,8 @@ namespace Domain.Entities {
 
     public class ApplicationUser : IdentityUser {
 
-        public ICollection<Order> Orders { get; set; } = null!;
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }
