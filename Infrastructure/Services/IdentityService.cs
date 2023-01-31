@@ -182,9 +182,9 @@ namespace Infrastructure.Services {
                 };
             }
 
-            var jti = principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+            var jti = principal.Claims.SingleOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
 
-            if (storedRefreshToken.JwtId != jti) {
+            if (jti == null || storedRefreshToken.JwtId != jti) {
                 return new AuthenticateResponse {
                     Succeeded = false,
                     Errors = new[] {
